@@ -115,7 +115,8 @@
 	qcom,fg-dischg-high-voltage-gain = <4 4 3>;
 	qcom,fg-rconn-mohm = <30>;
 	qcom,cl-max-limit-deciperc= <50>;
-	qcom,cl-min-limit-deciperc= <200>;
+	qcom,fg-acfa-usable-fcc = <90 80 70 60>;
+	qcom,fg-acfa-v-cutoff-aged = <3400 3500 3550 3600>;
 };
 
 &pmi8994_haptics {

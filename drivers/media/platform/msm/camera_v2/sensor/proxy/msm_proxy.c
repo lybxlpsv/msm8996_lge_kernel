@@ -2261,6 +2261,11 @@ int msm_init_proxy_EwokAPI(void)
 		{// cut 1.1
 			if(Status == VL53L0_ERROR_NONE)
 			{
+				/* LGE_CHANGE_S, changed LD clk to reduce the S5K2P7 sensor power noise. 2016-11-21 sungmin.cho@lge.com */
+				#ifdef CONFIG_MACH_MSM8996_ELSA
+				uint16_t module_name_1, module_name_2; // 0x814, 0x815~0x816
+				#endif
+				/* LGE_CHANGE_E, changed LD clk to reduce the S5K2P7 sensor power noise. 2016-11-21 sungmin.cho@lge.com */
 				/*
 				 *	Setup the Limit SIGMA and Signal Rate
 				 */
@@ -2291,8 +2296,50 @@ int msm_init_proxy_EwokAPI(void)
 				} else {
 					return Status;
 					}
-		
-				
+/* LGE_CHANGE_S, changed LD clk to reduce the S5K2P7 sensor power noise. 2016-11-21 sungmin.cho@lge.com */
+#ifdef CONFIG_MACH_MSM8996_ELSA
+				// read module name
+				proxy_i2c_e2p_read(0x814, &module_name_1, 1);
+				proxy_i2c_e2p_read(0x815, &module_name_2, 2);
+
+				pr_err("%s, module_name_1 = 0x%x, module_name_2 = 0x%x\n", __func__, module_name_1, module_name_2);
+
+				if (module_name_1 == 0x45 && module_name_2 == 0x7a02)
+				{
+					pr_err("%s, S5K2P7", __func__);
+					if (Status == VL53L0_ERROR_NONE) {
+						Status = VL53L0_SetVcselPulsePeriod(Dev,
+							 VL53L0_VCSEL_PERIOD_PRE_RANGE, 18);
+					}
+					if (Status == VL53L0_ERROR_NONE) {
+						Status = VL53L0_SetVcselPulsePeriod(Dev,
+							VL53L0_VCSEL_PERIOD_FINAL_RANGE, 14);
+					}
+				}
+				else
+				{
+					if (Status == VL53L0_ERROR_NONE) {
+						Status = VL53L0_SetVcselPulsePeriod(Dev,
+							 VL53L0_VCSEL_PERIOD_PRE_RANGE, 14);
+					}
+					if (Status == VL53L0_ERROR_NONE) {
+						Status = VL53L0_SetVcselPulsePeriod(Dev,
+							VL53L0_VCSEL_PERIOD_FINAL_RANGE, 10);
+					}
+				}
+#else
+				if (Status == VL53L0_ERROR_NONE) {
+					Status = VL53L0_SetVcselPulsePeriod(Dev, 
+						 VL53L0_VCSEL_PERIOD_PRE_RANGE, 14);
+				}
+				if (Status == VL53L0_ERROR_NONE) {
+					Status = VL53L0_SetVcselPulsePeriod(Dev, 
+						VL53L0_VCSEL_PERIOD_FINAL_RANGE, 10);
+				}
+
+#endif
+/* LGE_CHANGE_E, changed LD clk to reduce the S5K2P7 sensor power noise. 2016-11-21 sungmin.cho@lge.com */
+
 				if (Status == VL53L0_ERROR_NONE) {
 					Status = VL53L0_SetMeasurementTimingBudgetMicroSeconds(Dev, 33000);//11130);
 				} else {

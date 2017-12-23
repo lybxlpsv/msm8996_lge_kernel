@@ -139,6 +139,21 @@ int mdss_dsi_panel_reset(struct mdss_panel_data *pdata, int enable)
 						pinfo->rst_seq[i] * 1000);
 			}
 
+			if (pinfo->power_ctrl || pinfo->panel_dead) {
+				usleep_range(5000,5000);
+
+				rc = msm_dss_enable_vreg(
+						ctrl_pdata->panel_power_data.vreg_config,
+						ctrl_pdata->panel_power_data.num_vreg, 1);
+				if (rc) {
+					pr_err("%s: failed to enable vregs for %s\n",
+							__func__, __mdss_dsi_pm_name(DSI_PANEL_PM));
+				} else {
+					pr_info("%s: enable vregs for %s\n",
+							__func__, __mdss_dsi_pm_name(DSI_PANEL_PM));
+				}
+			}
+
 			if (gpio_is_valid(ctrl_pdata->bklt_en_gpio)) {
 				rc = gpio_direction_output(
 					ctrl_pdata->bklt_en_gpio, 1);
