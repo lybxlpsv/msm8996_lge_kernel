@@ -7,7 +7,7 @@ properties() { '
 kernel.string=H830 mk2000 Lineage
 do.devicecheck=1
 do.postboot=0
-do.modules=0
+do.modules=1
 do.cleanup=1
 do.cleanuponabort=0
 device.name1=h830
