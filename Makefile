@@ -295,12 +295,19 @@ CONFIG_SHELL := $(shell if [ -x "$$BASH" ]; then echo $$BASH; \
 	  else if [ -x /bin/bash ]; then echo /bin/bash; \
 	  else echo sh; fi ; fi)
 
-GRAPHITE = -fgraphite -fgraphite-identity -floop-interchange -ftree-loop-distribution -floop-strip-mine -floop-block -ftree-loop-linear
+ifneq ($(cc-name),clang)
+GRAPHITE     = -fgraphite -fgraphite-identity -floop-interchange -ftree-loop-distribution -floop-strip-mine -floop-block -ftree-loop-linear
 
 HOSTCC       = gcc
 HOSTCXX      = g++
 HOSTCFLAGS   = -Wall -Wmissing-prototypes -Wstrict-prototypes -O2 -fomit-frame-pointer -std=gnu89 $(GRAPHITE)
 HOSTCXXFLAGS = -O2 $(GRAPHITE)
+else
+HOSTCC       = gcc
+HOSTCXX      = g++
+HOSTCFLAGS   = -Wall -Wmissing-prototypes -Wstrict-prototypes -O2 -fomit-frame-pointer -std=gnu89
+HOSTCXXFLAGS = -O2
+endif
 
 # Decide whether to build built-in, modular, or both.
 # Normally, just do built-in.
@@ -369,7 +376,11 @@ CFLAGS_KCOV	= -fsanitize-coverage=trace-pc
 
 # fall back to -march=armv8-a in case the compiler isn't compatible
 # with -mcpu and -mtune
+ifeq ($(cc-name),clang)
+ARM_ARCH_OPT := -mcpu=kryo -mtune=kryo
+else
 ARM_ARCH_OPT := -mcpu=cortex-a57 -mtune=cortex-a57
+endif
 GEN_OPT_FLAGS := $(call cc-option,$(ARM_ARCH_OPT),-march=armv8-a) \
  -g0 -DNDEBUG \
  -fomit-frame-pointer \
@@ -630,7 +641,8 @@ KBUILD_CFLAGS += $(call cc-option, -fcatch-undefined-behavior)
 KBUILD_CFLAGS += $(call cc-option, -no-integrated-as)
 KBUILD_AFLAGS += $(call cc-option, -no-integrated-as)
 else
-
+# Kernel will not boot without this on gcc7+
+KBUILD_CFLAGS	+= $(call cc-ifversion, -ge, 0700, -fno-store-merging)
 # These warnings generated too much noise in a regular build.
 # Use make W=1 to enable them (see scripts/Makefile.build)
 KBUILD_CFLAGS += $(call cc-disable-warning, unused-but-set-variable)
@@ -648,9 +660,6 @@ KBUILD_CFLAGS	+= $(call cc-disable-warning, format-overflow)
 KBUILD_CFLAGS	+= $(call cc-disable-warning, int-in-bool-context)
 KBUILD_CFLAGS	+= $(call cc-option,-fno-PIE)
 KBUILD_AFLAGS	+= $(call cc-option,-fno-PIE)
-
-# Needed flag for GCC 7
-KBUILD_CFLAGS	+= $(call cc-ifversion, -ge, 0700, -fno-store-merging)
 
 ifdef CONFIG_CC_OPTIMIZE_FOR_SIZE
 KBUILD_CFLAGS	+= $(call cc-option,-Oz,-Os)
