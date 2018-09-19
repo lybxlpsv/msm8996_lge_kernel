@@ -11,6 +11,7 @@
 # once you've set up the config section how you like it, you can simply run
 # ./build.sh [VARIANT]
 #
+# optional: specify [clang] after [VARIANT]
 ##################### VARIANTS #####################
 #
 # H850		= International (Global)
@@ -71,8 +72,16 @@ RDIR=$(pwd)
 # version number
 VER=$(cat "$RDIR/VERSION")
 
+[ "$2" ] && IS_CLANG=$2
+[ "$IS_CLANG" ] && echo "Compiling with CLANG" || echo "Compiling with GCC"
+
 # directory containing cross-compile arm64 toolchain
-TOOLCHAIN=$HOME/build/toolchain/bin/aarch64-linux-gnu-
+if [ "$IS_CLANG" = "clang" ]; then
+CLANG=$HOME/build/toolchain/clang/bin/clang
+GCC=$HOME/build/toolchain/google-gcc/bin/aarch64-linux-android-
+else
+GCC=$HOME/build/toolchain/bin/aarch64-linux-gnu-
+fi
 
 CPU_THREADS=$(grep -c "processor" /proc/cpuinfo)
 # amount of cpu threads to use in kernel make process
@@ -90,8 +99,14 @@ ABORT() {
 export KBUILD_BUILD_USER=stendro
 export KBUILD_BUILD_HOST=xda
 export ARCH=arm64
-export USE_CCACHE=1
-export CROSS_COMPILE=$TOOLCHAIN
+export USE_CCACHE=0
+if [ "$IS_CLANG" = "clang" ]; then
+export CLANG_TRIPLE=aarch64-linux-gnu-
+export CC=$CLANG
+export KBUILD_COMPILER_STRING=$("$CLANG" --version | head -n 1 | perl -pe 's/\(http.*?\)//gs' | sed -e 's/  */ /g' -e 's/[[:space:]]*$//')
+fi
+export CROSS_COMPILE=$GCC
+
 
 [ "$1" ] && DEVICE=$1
 [ "$DEVICE" ] || ABORT "No device specified"

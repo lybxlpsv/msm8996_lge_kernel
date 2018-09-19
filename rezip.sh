@@ -19,6 +19,7 @@ ABORT() {
 VER=$(cat "${RDIR}/VERSION") \
 		|| ABORT "No version file found in ${RDIR}"
 
+LVER=$(cat ${RDIR}/VERSION | cut -f2 -d'_')
 BVER=$(cat ${RDIR}/VERSION | cut -f1 -d'-' | cut -f2 -d'_')
 
 RDISK=${RDIR}/mk2000
@@ -43,7 +44,7 @@ COPY_AK() {
 	else
 	  cp $BANNER $DDIR \
 		|| ABORT "Failed to copy banner"
-	  echo "  $VER" > $DDIR/version
+	  echo "  $LVER" > $DDIR/version
 	fi
 	cp $AK_DIR/anykernel-${DEVICE}.sh $DDIR/anykernel.sh \
 		|| ABORT "Failed to copy *anykernel.sh*"
