@@ -374,17 +374,16 @@ AFLAGS_KERNEL	=
 CFLAGS_GCOV	= -fprofile-arcs -ftest-coverage -fno-tree-loop-im
 CFLAGS_KCOV	= -fsanitize-coverage=trace-pc
 
-# fall back to -march=armv8-a in case the compiler isn't compatible
-# with -mcpu and -mtune
+# fall back to -march=armv8-a+crc+crypto in case the compiler isn't
+# compatible with -mcpu
 ifeq ($(cc-name),clang)
-ARM_ARCH_OPT := -mcpu=kryo -mtune=kryo
+ARM_ARCH_OPT := -mcpu=kryo
 else
-ARM_ARCH_OPT := -mcpu=cortex-a57 -mtune=cortex-a57
+ARM_ARCH_OPT := -mcpu=cortex-a57+crc+crypto
 endif
-GEN_OPT_FLAGS := $(call cc-option,$(ARM_ARCH_OPT),-march=armv8-a) \
+GEN_OPT_FLAGS := $(call cc-option,$(ARM_ARCH_OPT),-march=armv8-a+crc+crypto) \
  -g0 -DNDEBUG \
- -fomit-frame-pointer \
- -fivopts
+ -fomit-frame-pointer
 
 # Use USERINCLUDE when you must reference the UAPI directories only.
 USERINCLUDE    := \
