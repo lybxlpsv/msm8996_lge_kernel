@@ -9,13 +9,20 @@
 RDIR=$(pwd)
 BDIR=${RDIR}/build
 
+# color codes
+COLOR_R="\033[0;31m"
+COLOR_G="\033[1;32m"
+
 ABORT() {
-	echo "Error: $*"
+	echo -e $COLOR_R"Error: $*"
 	exit 1
 }
 
 DEVICE=$(cat "${BDIR}/DEVICE") \
 		|| ABORT "No device file found in ${BDIR}"
+
+COMP=$(cat "${BDIR}/COMPRESSION") \
+		|| ABORT "No compression file found in ${BDIR}"
 
 VER=$(cat "${RDIR}/VERSION") \
 		|| ABORT "No version file found in ${RDIR}"
@@ -92,13 +99,16 @@ COPY_AK() {
 #}
 
 COPY_KERNEL() {
-	echo "Copying kernel and modules..."
-	cp $KERN_DIR/Image.lz4-dtb $DDIR \
+	echo "Copying kernel..."
+	cp $KERN_DIR/Image.${COMP}-dtb $DDIR \
 		|| ABORT "Failed to copy kernel"
-	find $MOD_DIR/ -name '*.ko' -exec cp {} $DDIR/modules \; \
+	if grep -q 'CONFIG_MODULES=y' $BDIR/.config; then
+	  echo "Copying modules..."
+	  find $MOD_DIR/ -name '*.ko' -exec cp {} $DDIR/modules \; \
 		|| ABORT "Failed to copy modules"
-	find $MOD_DIR/ -name 'modules.dep' -exec cp {} $DDIR/modules \; \
+	  find $MOD_DIR/ -name 'modules.dep' -exec cp {} $DDIR/modules \; \
 		|| ABORT "Failed to copy modules.dep"
+	fi
 }
 
 ZIP_UP() {
@@ -109,7 +119,7 @@ ZIP_UP() {
 }
 
 cd "$RDIR" || ABORT "Failed to enter ${RDIR}"
-echo "Preparing ${DEVICE} ${VER}"
+echo -e $COLOR_G"Preparing ${DEVICE} ${VER}"
 
 CLEAN_DIR &&
 SETUP_DIR &&
