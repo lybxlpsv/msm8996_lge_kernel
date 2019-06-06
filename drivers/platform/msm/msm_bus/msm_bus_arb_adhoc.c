@@ -25,6 +25,8 @@
 #define NUM_LNODES	3
 #define MAX_STR_CL	50
 
+#define DEBUG_REC_TRANSACTION 0
+
 struct bus_search_type {
 	struct list_head link;
 	struct list_head node_list;
@@ -1059,8 +1061,7 @@ exit_register_client:
 	return handle;
 }
 
-static int update_client_paths(struct msm_bus_client *client, bool log_trns,
-							unsigned int idx)
+static int update_client_paths(struct msm_bus_client *client, unsigned int idx)
 {
 	int lnode, src, dest, cur_idx;
 	uint64_t req_clk, req_bw, curr_clk, curr_bw, slp_clk, slp_bw;
@@ -1118,9 +1119,6 @@ static int update_client_paths(struct msm_bus_client *client, bool log_trns,
 					__func__, ret, pdata->active_only);
 			goto exit_update_client_paths;
 		}
-
-		if (log_trns)
-			getpath_debug(src, lnode, pdata->active_only);
 	}
 	commit_data();
 exit_update_client_paths:
@@ -1169,7 +1167,7 @@ static int update_context(uint32_t cl, bool active_only,
 	pdata->active_only = active_only;
 
 	msm_bus_dbg_client_data(client->pdata, ctx_idx , cl);
-	ret = update_client_paths(client, false, ctx_idx);
+	ret = update_client_paths(client, ctx_idx);
 	if (ret) {
 		pr_err("%s: Err updating path\n", __func__);
 		goto exit_update_context;
@@ -1187,8 +1185,6 @@ static int update_request_adhoc(uint32_t cl, unsigned int index)
 	int ret = 0;
 	struct msm_bus_scale_pdata *pdata;
 	struct msm_bus_client *client;
-	const char *test_cl = "Null";
-	bool log_transaction = false;
 
 	rt_mutex_lock(&msm_bus_adhoc_lock);
 
@@ -1226,13 +1222,10 @@ static int update_request_adhoc(uint32_t cl, unsigned int index)
 		goto exit_update_request;
 	}
 
-	if (!strcmp(test_cl, pdata->name))
-		log_transaction = true;
-
 	MSM_BUS_DBG("%s: cl: %u index: %d curr: %d num_paths: %d\n", __func__,
 		cl, index, client->curr, client->pdata->usecase->num_paths);
 	msm_bus_dbg_client_data(client->pdata, index , cl);
-	ret = update_client_paths(client, log_transaction, index);
+	ret = update_client_paths(client, index);
 	if (ret) {
 		pr_err("%s: Err updating path\n", __func__);
 		goto exit_update_request;
@@ -1272,7 +1265,8 @@ static int update_bw_adhoc(struct msm_bus_client_handle *cl, u64 ab, u64 ib)
 	if (!strcmp(test_cl, cl->name))
 		log_transaction = true;
 
-	msm_bus_dbg_rec_transaction(cl, ab, ib);
+	if (DEBUG_REC_TRANSACTION)
+		msm_bus_dbg_rec_transaction(cl, ab, ib);
 
 	if ((cl->cur_act_ib == ib) && (cl->cur_act_ab == ab)) {
 		MSM_BUS_DBG("%s:no change in request", cl->name);
@@ -1333,7 +1327,8 @@ static int update_bw_context(struct msm_bus_client_handle *cl, u64 act_ab,
 
 	if (!slp_ab && !slp_ib)
 		cl->active_only = true;
-	msm_bus_dbg_rec_transaction(cl, cl->cur_act_ab, cl->cur_slp_ib);
+	if (DEBUG_REC_TRANSACTION)
+		msm_bus_dbg_rec_transaction(cl, cl->cur_act_ab, cl->cur_slp_ib);
 	ret = update_path(cl->mas_dev, cl->slv, act_ib, act_ab, slp_ib, slp_ab,
 				cl->cur_act_ab, cl->cur_act_ab,  cl->first_hop,
 				cl->active_only);

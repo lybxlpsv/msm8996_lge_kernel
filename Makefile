@@ -1,6 +1,6 @@
 VERSION = 3
 PATCHLEVEL = 18
-SUBLEVEL = 132
+SUBLEVEL = 139
 EXTRAVERSION =
 # Repurposed for custom banner use, set in build.sh
 # See "filechk_version.h" below, and init/version.c
@@ -386,8 +386,8 @@ CFLAGS_KCOV	= -fsanitize-coverage=trace-pc
 # compatible with -mcpu
 ARM_ARCH_OPT := -mcpu=cortex-a57+crc+crypto
 GEN_OPT_FLAGS := $(call cc-option,$(ARM_ARCH_OPT),-march=armv8-a+crc+crypto) \
- -g0 -DNDEBUG \
- -fivopts $(MK_FLAGS)
+ -g0 -DNDEBUG -fivopts \
+ -ftree-vectorize $(MK_FLAGS)
 
 # Use USERINCLUDE when you must reference the UAPI directories only.
 USERINCLUDE    := \
@@ -642,6 +642,7 @@ KBUILD_CFLAGS	+= $(call cc-disable-warning, format-truncation)
 KBUILD_CFLAGS	+= $(call cc-disable-warning, format-overflow)
 KBUILD_CFLAGS	+= $(call cc-disable-warning, int-in-bool-context)
 KBUILD_CFLAGS	+= $(call cc-disable-warning, attribute-alias)
+KBUILD_CFLAGS	+= $(call cc-disable-warning, address-of-packed-member)
 KBUILD_CFLAGS	+= $(call cc-option,-fno-PIE)
 KBUILD_AFLAGS	+= $(call cc-option,-fno-PIE)
 
