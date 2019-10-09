@@ -12,5 +12,5 @@ pool:
 steps:
 - script: wget "https://developer.arm.com/-/media/Files/downloads/gnu-a/8.3-2019.03/binrel/gcc-arm-8.3-2019.03-x86_64-aarch64_be-linux-gnu.tar.xz?revision=2f2b1067-b22e-4eaf-b4ff-e1bd205131e6&la=en" -o gcc.tar.xz
   displayName: 'Download GCC Toolchain'
-- script: tar xvf gcc.tar.xz
+- script: tar xf gcc.tar.xz
   displayName: 'Extracting GCC Toolchain'
