@@ -98,7 +98,7 @@ THREADS=$(grep -c "processor" /proc/cpuinfo)
 BDATE=$(LC_ALL='en_US.utf8' date '+%b %d %Y')
 
 # directory containing cross-compiler
-GCC_COMP=gcc9/bin/aarch64-elf-
+GCC_COMP=/content/gcc9/bin/aarch64-elf-
 # directory containing 32bit cross-compiler (COMPAT_VDSO)
 GCC_COMP_32=$HOME/build/toolchain/gcc9-32/bin/arm-eabi-
 
